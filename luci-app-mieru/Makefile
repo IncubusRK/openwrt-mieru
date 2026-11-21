@@ -24,3 +24,6 @@ include $(TOPDIR)/feeds/luci/luci.mk
 
 # luci.mk evaluates BuildPackage for luci-app-mieru and the luci-i18n-mieru-*
 # translation packages automatically (LUCI_LANGUAGES is derived from po/).
+# The literal "call BuildPackage" line below is required by include/scan.mk:
+# a package Makefile without it is silently skipped by the metadata scanner.
+# call BuildPackage - OpenWrt buildroot signature
