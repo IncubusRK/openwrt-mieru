@@ -1,0 +1,366 @@
+# Russian translations for luci-app-mieru.
+# Copyright (C) 2026 IncubusRK
+# This file is distributed under the GPL-2.0-or-later license.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-mieru\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-21 12:00+0000\n"
+"PO-Revision-Date: 2026-11-21 12:00+0000\n"
+"Last-Translator: IncubusRK\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+
+msgid "Action \"%s\" completed."
+msgstr "Действие «%s» выполнено."
+
+msgid "Action failed"
+msgstr "Ошибка действия"
+
+msgid "Active connections"
+msgstr "Активные соединения"
+
+msgid "Additional server port bindings. The primary binding is configured on the Settings tab; each row here adds one more port or port range with its own protocol. Mieru picks a random binding for every new connection."
+msgstr "Дополнительные привязки портов сервера. Основная привязка задаётся на вкладке «Настройки»; каждая строка здесь добавляет ещё один порт или диапазон портов со своим протоколом. Mieru выбирает случайную привязку для каждого нового соединения."
+
+msgid "Allow devices on the LAN to use the HTTP/HTTPS proxy."
+msgstr "Разрешить устройствам LAN использовать HTTP/HTTPS-прокси."
+
+msgid "Allow devices on the LAN to use this SOCKS5 proxy. Local consumers (Podkop/Xray on this router) work either way."
+msgstr "Разрешить устройствам LAN использовать этот SOCKS5-прокси. Локальные потребители (Podkop/Xray на этом роутере) работают в любом случае."
+
+msgid "Apply"
+msgstr "Применить"
+
+msgid "Autostart"
+msgstr "Автозапуск"
+
+msgid "Binding warnings"
+msgstr "Предупреждения о привязках"
+
+msgid "Bindings look good"
+msgstr "Привязки в порядке"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Check overlaps"
+msgstr "Проверить пересечения"
+
+msgid "Client profile name used in share links and the client config."
+msgstr "Имя профиля клиента, используемое в ссылках и конфигурации клиента."
+
+msgid "Client version"
+msgstr "Версия клиента"
+
+msgid "Clipboard access is unavailable; the text is selected, press Ctrl+C."
+msgstr "Доступ к буферу обмена недоступен; текст выделен, нажмите Ctrl+C."
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "Configure %s as a SOCKS5 upstream in Podkop, Xray or OpenClash to route their traffic through mieru."
+msgstr "Укажите %s как SOCKS5-upstream в Podkop, Xray или OpenClash, чтобы направить их трафик через mieru."
+
+msgid "Connection failed"
+msgstr "Соединение не удалось"
+
+msgid "Connection multiplexing level."
+msgstr "Уровень мультиплексирования соединений."
+
+msgid "Connection successful"
+msgstr "Соединение успешно"
+
+msgid "Connection test"
+msgstr "Проверка соединения"
+
+msgid "Copied"
+msgstr "Скопировано"
+
+msgid "Copied to clipboard."
+msgstr "Скопировано в буфер обмена."
+
+msgid "Copy"
+msgstr "Копировать"
+
+msgid "Copy manually"
+msgstr "Скопируйте вручную"
+
+msgid "Disabled"
+msgstr "Отключено"
+
+msgid "Download"
+msgstr "Скачать"
+
+msgid "ERROR is recommended on OpenWrt to avoid filling the log."
+msgstr "На OpenWrt рекомендуется ERROR, чтобы не заполнять журнал."
+
+msgid "Enable"
+msgstr "Включить"
+
+msgid "Enter a bare IP address or domain name, without scheme or spaces"
+msgstr "Введите IP-адрес или доменное имя без схемы и пробелов"
+
+msgid "Export"
+msgstr "Экспорт"
+
+msgid "Export failed"
+msgstr "Ошибка экспорта"
+
+msgid "Exports the saved configuration (press Save first if you changed fields). The link uses the upstream-compatible format accepted by \"mieru import config\"."
+msgstr "Экспортируется сохранённая конфигурация (если вы меняли поля, сначала нажмите «Сохранить»). Ссылка использует upstream-совместимый формат, принимаемый командой «mieru import config»."
+
+msgid "Generate JSON"
+msgstr "Сгенерировать JSON"
+
+msgid "Generate link"
+msgstr "Сгенерировать ссылку"
+
+msgid "HANDSHAKE_NO_WAIT enables 0-RTT handshakes."
+msgstr "HANDSHAKE_NO_WAIT включает рукопожатия 0-RTT."
+
+msgid "HTTP proxy listen on LAN"
+msgstr "HTTP-прокси: доступ из LAN"
+
+msgid "HTTP proxy port"
+msgstr "Порт HTTP-прокси"
+
+msgid "Handshake mode"
+msgstr "Режим рукопожатия"
+
+msgid "IPv4/IPv6 address or domain name of the mita proxy server."
+msgstr "IPv4/IPv6-адрес или доменное имя прокси-сервера mita."
+
+msgid "Import"
+msgstr "Импорт"
+
+msgid "Import / Export"
+msgstr "Импорт / Экспорт"
+
+msgid "Import failed"
+msgstr "Ошибка импорта"
+
+msgid "Import preview"
+msgstr "Предпросмотр импорта"
+
+msgid "Invalid bindings"
+msgstr "Некорректные привязки"
+
+msgid "Loading log…"
+msgstr "Загрузка журнала…"
+
+msgid "Local SOCKS5 proxy port (no authentication by default)."
+msgstr "Локальный порт SOCKS5-прокси (по умолчанию без аутентификации)."
+
+msgid "Local control port used for status and metrics. Must differ from the SOCKS5 and HTTP proxy ports."
+msgstr "Локальный порт управления для статуса и метрик. Должен отличаться от портов SOCKS5 и HTTP-прокси."
+
+msgid "Log"
+msgstr "Журнал"
+
+msgid "Log level"
+msgstr "Уровень журнала"
+
+msgid "MTU"
+msgstr "MTU"
+
+msgid "MTU must be a number"
+msgstr "MTU должен быть числом"
+
+msgid "MTU must be within 1280-1400"
+msgstr "MTU должен быть в диапазоне 1280-1400"
+
+msgid "Mieru"
+msgstr "Mieru"
+
+msgid "Mieru proxy client (upstream enfein/mieru). Provides a local SOCKS5 proxy that can be used as an upstream in Podkop, Xray or OpenClash."
+msgstr "Прокси-клиент Mieru (upstream enfein/mieru). Предоставляет локальный SOCKS5-прокси, который можно использовать как upstream в Podkop, Xray или OpenClash."
+
+msgid "Multiplexing"
+msgstr "Мультиплексирование"
+
+msgid "Must match the password configured on the mita server."
+msgstr "Должно совпадать с паролем, настроенным на сервере mita."
+
+msgid "Must match the user configured on the mita server."
+msgstr "Должно совпадать с пользователем, настроенным на сервере mita."
+
+msgid "No log entries yet."
+msgstr "Записей в журнале пока нет."
+
+msgid "No overlaps or duplicates detected."
+msgstr "Пересечений и дубликатов не обнаружено."
+
+msgid "Not running"
+msgstr "Не работает"
+
+msgid "On-demand process info, upstream metrics (mieru get metrics) and syslog. Refreshes every 5 seconds; no background monitor daemon is used."
+msgstr "Информация о процессе по запросу, метрики upstream (mieru get metrics) и системный журнал. Обновление каждые 5 секунд; фоновый демон-монитор не используется."
+
+msgid "Opaque base64 protobuf payload from a mierus:// share link. Preserved in exports; applied through the client binary when the service starts. Leave empty unless your server requires it."
+msgstr "Непрозрачные данные base64 protobuf из ссылки mierus://. Сохраняются при экспорте; применяются через бинарник клиента при запуске службы. Оставьте пустым, если сервер этого не требует."
+
+msgid "Optional local HTTP/HTTPS proxy port. Leave empty to disable."
+msgstr "Необязательный локальный порт HTTP/HTTPS-прокси. Оставьте пустым, чтобы отключить."
+
+msgid "Password"
+msgstr "Пароль"
+
+msgid "Paste a mierus:// share link (canonical or compact port=2012,2020-2030/UDP form), a standard mieru:// link (decoded by the client binary), or a mieru client JSON config. Multi-port links are imported losslessly into UCI port bindings."
+msgstr "Вставьте ссылку mierus:// (каноническую или компактную вида port=2012,2020-2030/UDP), стандартную ссылку mieru:// (декодируется бинарником клиента) или JSON-конфиг клиента mieru. Ссылки с несколькими портами импортируются в привязки UCI без потерь."
+
+msgid "Port"
+msgstr "Порт"
+
+msgid "Port / range"
+msgstr "Порт / диапазон"
+
+msgid "Port Binding"
+msgstr "Привязка порта"
+
+msgid "Port Bindings"
+msgstr "Привязки портов"
+
+msgid "Port bindings"
+msgstr "Привязки портов"
+
+msgid "Port must be a number"
+msgstr "Порт должен быть числом"
+
+msgid "Port must be within 1-65535"
+msgstr "Порт должен быть в диапазоне 1-65535"
+
+msgid "Primary server port: a single port (2012) or a range (2020-2030). Add more bindings on the Port Bindings tab."
+msgstr "Основной порт сервера: одиночный порт (2012) или диапазон (2020-2030). Дополнительные привязки — на вкладке «Привязки портов»."
+
+msgid "Process"
+msgstr "Процесс"
+
+msgid "Profile name"
+msgstr "Имя профиля"
+
+msgid "Profile name must not be empty or contain spaces"
+msgstr "Имя профиля не должно быть пустым или содержать пробелы"
+
+msgid "Protocol"
+msgstr "Протокол"
+
+msgid "RPC port"
+msgstr "Порт RPC"
+
+msgid "Refresh log"
+msgstr "Обновить журнал"
+
+msgid "Restart"
+msgstr "Перезапустить"
+
+msgid "Running"
+msgstr "Работает"
+
+msgid "SOCKS5 endpoint"
+msgstr "Адрес SOCKS5"
+
+msgid "SOCKS5 listen on LAN"
+msgstr "SOCKS5: доступ из LAN"
+
+msgid "SOCKS5 port"
+msgstr "Порт SOCKS5"
+
+msgid "SOCKS5 upstream: "
+msgstr "SOCKS5-upstream: "
+
+msgid "Server address"
+msgstr "Адрес сервера"
+
+msgid "Service action"
+msgstr "Действие со службой"
+
+msgid "Settings"
+msgstr "Настройки"
+
+msgid "Single port (2012) or range (2020-2030)."
+msgstr "Одиночный порт (2012) или диапазон (2020-2030)."
+
+msgid "Speed (download / upload)"
+msgstr "Скорость (загрузка / отдача)"
+
+msgid "Start"
+msgstr "Запустить"
+
+msgid "Start the mieru client and keep it running under procd."
+msgstr "Запускать клиент mieru и поддерживать его работу под управлением procd."
+
+msgid "State"
+msgstr "Состояние"
+
+msgid "Status"
+msgstr "Статус"
+
+msgid "Stop"
+msgstr "Остановить"
+
+msgid "Test connection"
+msgstr "Проверить соединение"
+
+msgid "The JSON config cannot carry the protobuf traffic pattern; use the share link export to keep it."
+msgstr "JSON-конфиг не может содержать protobuf-шаблон трафика; используйте экспорт ссылки, чтобы сохранить его."
+
+msgid "The following configuration was parsed. Applying it replaces the current settings and enables the service."
+msgstr "Распознана следующая конфигурация. Применение заменит текущие настройки и включит службу."
+
+msgid "Traffic (download / upload)"
+msgstr "Трафик (загрузка / отдача)"
+
+msgid "Traffic pattern"
+msgstr "Шаблон трафика"
+
+msgid "Traffic pattern (advanced)"
+msgstr "Шаблон трафика (дополнительно)"
+
+msgid "Traffic pattern must be base64 (copied from a share link)"
+msgstr "Шаблон трафика должен быть в base64 (скопируйте из ссылки)"
+
+msgid "Traffic pattern omitted"
+msgstr "Шаблон трафика пропущен"
+
+msgid "Transport protocol of the primary port binding."
+msgstr "Транспортный протокол основной привязки порта."
+
+msgid "Tunnel MTU, 1280-1400. Must match the server setting."
+msgstr "MTU туннеля, 1280-1400. Должен совпадать с настройкой сервера."
+
+msgid "Underlay connections"
+msgstr "Соединения underlay"
+
+msgid "Username"
+msgstr "Имя пользователя"
+
+msgid "disabled"
+msgstr "отключён"
+
+msgid "enabled"
+msgstr "включён"
+
+msgid "init script returned code %d"
+msgstr "init-скрипт вернул код %d"
+
+msgid "no output"
+msgstr "нет вывода"
+
+msgid "none"
+msgstr "нет"
+
+msgid "present (preserved)"
+msgstr "присутствует (сохраняется)"
+
+msgid "unknown"
+msgstr "неизвестно"
+
+msgid "uptime"
+msgstr "время работы"

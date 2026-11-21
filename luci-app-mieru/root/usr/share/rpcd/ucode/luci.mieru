@@ -1,0 +1,185 @@
+// Copyright (C) 2026 IncubusRK
+// SPDX-License-Identifier: GPL-2.0-or-later
+//
+// rpcd ucode plugin for luci-app-mieru: on-demand status, metrics, log,
+// connection test, share-link decoding and service control.
+//
+// All shell commands are built from fixed strings or shell-quoted,
+// scheme-validated arguments; service actions are whitelisted.
+
+'use strict';
+
+import { cursor } from 'uci';
+import { popen, readfile, stat } from 'fs';
+
+const INIT_SCRIPT = '/etc/init.d/mieru';
+const MIERU_BIN = '/usr/bin/mieru';
+const MAX_URL_LEN = 8192;
+
+function shellquote(s) {
+	return "'" + replace(s ?? '', "'", "'\\''") + "'";
+}
+
+function run(cmd) {
+	const p = popen(cmd);
+	if (!p)
+		return { code: -1, out: '' };
+	const out = p.read('all') ?? '';
+	const code = p.close();
+	return { code: code, out: out };
+}
+
+// The client prints JSON through its logger; extract the outermost object.
+function extract_json(out) {
+	const s = index(out, '{');
+	const e = rindex(out, '}');
+	if (s == -1 || e == -1 || e <= s)
+		return null;
+	try {
+		return json(substr(out, s, e - s + 1));
+	} catch (err) {
+		return null;
+	}
+}
+
+function get_pid() {
+	const r = run('pidof mieru 2>/dev/null');
+	if (r.code != 0)
+		return null;
+	// Short-lived CLI invocations (mieru get metrics / test / ...) share the
+	// process name; pick the daemon whose second argv entry is "run".
+	for (let p in split(trim(r.out), /\s+/)) {
+		if (!p)
+			continue;
+		const cmd = readfile('/proc/' + p + '/cmdline');
+		const args = cmd ? split(cmd, "\x00") : [];
+		if (length(args) > 1 && args[1] == 'run')
+			return +p;
+	}
+	return null;
+}
+
+function proc_info(pid) {
+	const info = { running: false, pid: null, uptime: 0, memory: 0 };
+	if (!pid || !stat('/proc/' + pid))
+		return info;
+
+	info.running = true;
+	info.pid = pid;
+
+	const raw = readfile('/proc/' + pid + '/stat');
+	if (raw) {
+		// field 22 (starttime, clock ticks since boot); skip "pid (comm) "
+		const rest = substr(raw, rindex(raw, ')') + 2);
+		const fields = split(rest, ' ');
+		const starttime = +fields[19];
+		const procstat = readfile('/proc/stat');
+		const bt = procstat ? match(procstat, /btime ([0-9]+)/) : null;
+		if (bt && starttime > 0) {
+			const up = time() - (+bt[1] + starttime / 100);
+			info.uptime = up > 0 ? int(up) : 0;
+		}
+	}
+
+	const status = readfile('/proc/' + pid + '/status');
+	if (status) {
+		const m = match(status, /VmRSS:\s+([0-9]+)\s+kB/);
+		if (m)
+			info.memory = +m[1] * 1024;
+	}
+
+	return info;
+}
+
+function uci_main() {
+	const uci = cursor();
+	uci.load('mieru');
+	return {
+		enabled: uci.get('mieru', 'main', 'enabled') == '1',
+		socks5_port: uci.get('mieru', 'main', 'socks5_port') ?? '1080',
+		socks5_listen_lan: uci.get('mieru', 'main', 'socks5_listen_lan') != '0',
+		server_addr: uci.get('mieru', 'main', 'server_addr') ?? ''
+	};
+}
+
+const methods = {
+	getStatus: {
+		call: function() {
+			const cfg = uci_main();
+			const pid = get_pid();
+			const proc = proc_info(pid);
+
+			let metrics = null;
+			if (proc.running) {
+				const r = run('HOME=/root ' + MIERU_BIN + ' get metrics 2>/dev/null');
+				metrics = extract_json(r.out);
+			}
+
+			const autostart = run(INIT_SCRIPT + ' enabled >/dev/null 2>&1');
+
+			return {
+				enabled: cfg.enabled,
+				autostart: autostart.code == 0,
+				socks5: (cfg.socks5_listen_lan ? '0.0.0.0:' : '127.0.0.1:') + cfg.socks5_port,
+				server: cfg.server_addr,
+				process: proc,
+				metrics: metrics
+			};
+		}
+	},
+
+	getVersion: {
+		call: function() {
+			const r = run(MIERU_BIN + ' version 2>/dev/null');
+			const m = match(r.out, /([0-9]+\.[0-9]+\.[0-9]+)/);
+			return { version: m ? m[1] : null };
+		}
+	},
+
+	getLog: {
+		call: function() {
+			let r = run('logread -e mieru 2>/dev/null | tail -n 200');
+			if (length(trim(r.out)) == 0)
+				r = run('logread 2>/dev/null | grep -i mieru | tail -n 200');
+			return { log: r.out };
+		}
+	},
+
+	testConnection: {
+		call: function() {
+			const r = run('HOME=/root timeout 25 ' + MIERU_BIN + ' test 2>&1');
+			return { success: r.code == 0, output: trim(r.out) };
+		}
+	},
+
+	explainLink: {
+		args: { url: 'string' },
+		call: function(req) {
+			const url = trim(req.args?.url ?? '');
+			if (!match(url, /^mierus?:\/\//))
+				return { error: 'URL must start with mieru:// or mierus://' };
+			if (length(url) > MAX_URL_LEN)
+				return { error: 'URL is too long' };
+
+			const r = run('HOME=/root ' + MIERU_BIN + ' explain config ' + shellquote(url) + ' 2>&1');
+			const cfg = extract_json(r.out);
+			if (!cfg)
+				return { error: trim(r.out) || 'mieru explain config failed' };
+			return { config: cfg };
+		}
+	},
+
+	serviceAction: {
+		args: { action: 'string' },
+		call: function(req) {
+			const action = req.args?.action;
+			if (index(['start', 'stop', 'restart', 'enable', 'disable'], action) == -1)
+				return { error: 'unsupported action' };
+
+			const code = system(INIT_SCRIPT + ' ' + action + ' >/dev/null 2>&1');
+			return { success: code == 0, code: code };
+		}
+	}
+};
+
+return { 'luci.mieru': methods };

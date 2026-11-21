@@ -1,0 +1,290 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2026 IncubusRK
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# procd init for the mieru proxy client (upstream enfein/mieru).
+#
+# UCI "mieru" is translated into the upstream JSON client config and the
+# client is run in the foreground ("mieru run") under procd supervision.
+# Following the upstream OpenWrt guide, the config is passed through the
+# MIERU_CONFIG_JSON_FILE environment variable; logs then go to stdout and
+# are captured by procd/logd.
+#
+# Exception: a traffic pattern (traffic_pattern, base64 protobuf from a
+# mierus:// share link) cannot be expressed in the JSON config. When it is
+# set, the config is stored via "mieru replace config" and the pattern is
+# merged in via "mieru import config <mierus-link>" (the binary decodes the
+# protobuf itself); the client then runs from the stored config.
+
+START=99
+USE_PROCD=1
+
+PROG="/usr/bin/mieru"
+CONF="mieru"
+JSON_FILE="/var/etc/mieru_client_config.json"
+
+is_uint() {
+	case "$1" in
+		''|*[!0-9]*) return 1 ;;
+	esac
+	return 0
+}
+
+is_port() {
+	is_uint "$1" && [ "$1" -ge 1 ] && [ "$1" -le 65535 ]
+}
+
+# single port "2012" or range "2020-2030" (1 <= start <= end <= 65535)
+is_port_spec() {
+	local a b
+	case "$1" in
+		*-*)
+			a="${1%%-*}"
+			b="${1#*-}"
+			case "$b" in *-*) return 1 ;; esac
+			is_port "$a" && is_port "$b" && [ "$a" -le "$b" ]
+			;;
+		*)
+			is_port "$1"
+			;;
+	esac
+}
+
+is_protocol() {
+	case "$1" in
+		TCP|UDP) return 0 ;;
+	esac
+	return 1
+}
+
+fail() {
+	logger -t mieru -p daemon.err "$1"
+	return 1
+}
+
+# Percent-encode a string for use in a URL (RFC 3986 unreserved set kept).
+url_encode() {
+	local str="$1" out='' ch
+	while [ -n "$str" ]; do
+		ch="${str%"${str#?}"}"
+		str="${str#?}"
+		case "$ch" in
+			[A-Za-z0-9._~-]) out="${out}${ch}" ;;
+			*) out="${out}$(printf '%%%02X' "'${ch}")" ;;
+		esac
+	done
+	printf '%s' "$out"
+}
+
+BINDINGS_BAD=0
+
+validate_binding_cb() {
+	local p pr
+	config_get p "$1" port
+	config_get pr "$1" protocol 'TCP'
+	pr="$(printf '%s' "$pr" | tr '[:lower:]' '[:upper:]')"
+	if ! is_port_spec "$p"; then
+		fail "invalid port_binding port '$p'"
+		BINDINGS_BAD=1
+	fi
+	if ! is_protocol "$pr"; then
+		fail "invalid port_binding protocol '$pr'"
+		BINDINGS_BAD=1
+	fi
+}
+
+add_binding_json() {
+	json_add_object ''
+	case "$1" in
+		*-*) json_add_string portRange "$1" ;;
+		*) json_add_int port "$1" ;;
+	esac
+	json_add_string protocol "$2"
+	json_close_object
+}
+
+add_binding_cb() {
+	local p pr
+	config_get p "$1" port
+	config_get pr "$1" protocol 'TCP'
+	pr="$(printf '%s' "$pr" | tr '[:lower:]' '[:upper:]')"
+	add_binding_json "$p" "$pr"
+}
+
+generate_json_config() {
+	. /usr/share/libubox/jshn.sh
+
+	json_init
+	json_add_string activeProfile "$profile"
+	json_add_int socks5Port "$socks5_port"
+	json_add_boolean socks5ListenLAN "$socks5_listen_lan"
+	json_add_int rpcPort "$rpc_port"
+	json_add_string loggingLevel "$log_level"
+	if [ -n "$http_proxy_port" ]; then
+		json_add_int httpProxyPort "$http_proxy_port"
+		json_add_boolean httpProxyListenLAN "$http_proxy_listen_lan"
+	fi
+
+	json_add_array profiles
+	json_add_object ''
+	json_add_string profileName "$profile"
+	json_add_int mtu "$mtu"
+	json_add_string handshakeMode "$handshake_mode"
+	json_add_object multiplexing
+	json_add_string level "$multiplexing"
+	json_close_object
+	json_add_object user
+	json_add_string name "$username"
+	json_add_string password "$password"
+	json_close_object
+	json_add_array servers
+	json_add_object ''
+	case "$server_addr" in
+		*:*) json_add_string ipAddress "$server_addr" ;;
+		*[!0-9.]*) json_add_string domainName "$server_addr" ;;
+		*) json_add_string ipAddress "$server_addr" ;;
+	esac
+	json_add_array portBindings
+	add_binding_json "$port" "$protocol"
+	config_foreach add_binding_cb port_binding
+	json_close_array
+	json_close_object
+	json_close_array
+	json_close_object
+	json_close_array
+
+	json_dump
+}
+
+# Build a canonical upstream-compatible mierus:// link (used only when a
+# traffic pattern must be merged through the client binary). Query keys are
+# emitted in the same alphabetical order as upstream url.Values.Encode():
+# handshake-mode, mtu, multiplexing, port*, profile, protocol*, traffic-pattern.
+append_link_binding_cb() {
+	local p pr
+	config_get p "$1" port
+	config_get pr "$1" protocol 'TCP'
+	pr="$(printf '%s' "$pr" | tr '[:lower:]' '[:upper:]')"
+	LINK_PORTS="${LINK_PORTS}&port=$(url_encode "$p")"
+	LINK_PROTOS="${LINK_PROTOS}&protocol=${pr}"
+}
+
+build_share_link() {
+	local link
+
+	link="mierus://$(url_encode "$username"):$(url_encode "$password")@"
+	case "$server_addr" in
+		*:*) link="${link}[${server_addr}]" ;;
+		*) link="${link}${server_addr}" ;;
+	esac
+
+	LINK_PORTS="&port=$(url_encode "$port")"
+	LINK_PROTOS="&protocol=${protocol}"
+	config_foreach append_link_binding_cb port_binding
+
+	printf '%s' "${link}?handshake-mode=${handshake_mode}&mtu=${mtu}&multiplexing=${multiplexing}${LINK_PORTS}&profile=$(url_encode "$profile")${LINK_PROTOS}&traffic-pattern=$(url_encode "$traffic_pattern")"
+}
+
+start_service() {
+	export HOME=/root
+
+	config_load "$CONF"
+
+	local enabled
+	config_get_bool enabled main enabled 0
+	[ "$enabled" -eq 1 ] || return 0
+
+	local server_addr port protocol username password profile
+	local socks5_port socks5_listen_lan http_proxy_port http_proxy_listen_lan
+	local rpc_port mtu multiplexing handshake_mode log_level traffic_pattern
+
+	config_get server_addr main server_addr
+	config_get port main port
+	config_get protocol main protocol 'TCP'
+	config_get username main username
+	config_get password main password
+	config_get profile main profile 'default'
+	config_get socks5_port main socks5_port '1080'
+	config_get_bool socks5_listen_lan main socks5_listen_lan 1
+	config_get http_proxy_port main http_proxy_port
+	config_get_bool http_proxy_listen_lan main http_proxy_listen_lan 0
+	config_get rpc_port main rpc_port '8964'
+	config_get mtu main mtu '1400'
+	config_get multiplexing main multiplexing 'MULTIPLEXING_LOW'
+	config_get handshake_mode main handshake_mode 'HANDSHAKE_STANDARD'
+	config_get log_level main log_level 'ERROR'
+	config_get traffic_pattern main traffic_pattern
+
+	protocol="$(printf '%s' "$protocol" | tr '[:lower:]' '[:upper:]')"
+
+	[ -n "$server_addr" ] || { fail "server_addr is not set; service not started"; return 1; }
+	[ -n "$username" ] || { fail "username is not set; service not started"; return 1; }
+	[ -n "$password" ] || { fail "password is not set; service not started"; return 1; }
+	is_port_spec "$port" || { fail "invalid port '$port'"; return 1; }
+	is_protocol "$protocol" || { fail "invalid protocol '$protocol' (use TCP or UDP)"; return 1; }
+	is_port "$socks5_port" || { fail "invalid socks5_port '$socks5_port'"; return 1; }
+	is_port "$rpc_port" || { fail "invalid rpc_port '$rpc_port'"; return 1; }
+	[ "$socks5_port" != "$rpc_port" ] || { fail "socks5_port and rpc_port must differ"; return 1; }
+	if [ -n "$http_proxy_port" ]; then
+		is_port "$http_proxy_port" || { fail "invalid http_proxy_port '$http_proxy_port'"; return 1; }
+		[ "$http_proxy_port" != "$socks5_port" ] || { fail "http_proxy_port and socks5_port must differ"; return 1; }
+		[ "$http_proxy_port" != "$rpc_port" ] || { fail "http_proxy_port and rpc_port must differ"; return 1; }
+	fi
+	is_uint "$mtu" && [ "$mtu" -ge 1280 ] && [ "$mtu" -le 1400 ] || { fail "mtu must be 1280-1400"; return 1; }
+	case "$multiplexing" in
+		MULTIPLEXING_OFF|MULTIPLEXING_LOW|MULTIPLEXING_MIDDLE|MULTIPLEXING_HIGH) ;;
+		*) fail "invalid multiplexing '$multiplexing'"; return 1 ;;
+	esac
+	case "$handshake_mode" in
+		HANDSHAKE_STANDARD|HANDSHAKE_NO_WAIT) ;;
+		*) fail "invalid handshake_mode '$handshake_mode'"; return 1 ;;
+	esac
+	case "$log_level" in
+		DEFAULT|FATAL|ERROR|WARN|INFO|DEBUG|TRACE) ;;
+		*) fail "invalid log_level '$log_level'"; return 1 ;;
+	esac
+
+	BINDINGS_BAD=0
+	config_foreach validate_binding_cb port_binding
+	[ "$BINDINGS_BAD" -eq 0 ] || return 1
+
+	mkdir -p "$(dirname "$JSON_FILE")"
+	generate_json_config > "$JSON_FILE" || { fail "failed to generate $JSON_FILE"; return 1; }
+	chmod 600 "$JSON_FILE"
+
+	if [ -n "$traffic_pattern" ]; then
+		local link
+		link="$(build_share_link)"
+		"$PROG" replace config "$JSON_FILE" || { fail "mieru replace config failed"; return 1; }
+		"$PROG" import config "$link" || { fail "mieru import config failed (traffic pattern)"; return 1; }
+	fi
+
+	procd_open_instance client
+	procd_set_param command "$PROG" run
+	procd_set_param env HOME=/root
+
+	# With a traffic pattern the client runs from the stored config
+	# ($HOME/.config/mieru/client.conf.pb); otherwise from the JSON file.
+	if [ -z "$traffic_pattern" ]; then
+		procd_set_param env MIERU_CONFIG_JSON_FILE="$JSON_FILE"
+		procd_set_param file "$JSON_FILE"
+	fi
+
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	procd_set_param respawn
+	procd_close_instance
+}
+
+stop_service() {
+	rm -f "$JSON_FILE"
+}
+
+reload_service() {
+	stop
+	start
+}
+
+service_triggers() {
+	procd_add_reload_trigger "$CONF"
+}

@@ -1,0 +1,28 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  node-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check (JS)
+        run: |
+          find luci-app-mieru/htdocs -name '*.js' -print0 | xargs -0 -n1 node --check
+          node --check tests/mieru-link.test.cjs
+          node --check tests/i18n-check.cjs
+      - name: JSON validation
+        run: |
+          for f in $(find luci-app-mieru/root -name '*.json'); do
+            node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))"
+          done
+      - name: Link parser/generator tests
+        run: node --test tests/
+      - name: i18n coverage (EN -> ru)
+        run: node tests/i18n-check.cjs

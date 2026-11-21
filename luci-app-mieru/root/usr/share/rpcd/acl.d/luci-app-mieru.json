@@ -1,0 +1,31 @@
+{
+	"luci-app-mieru": {
+		"description": "Grant access to Mieru client configuration and status",
+		"read": {
+			"file": {
+				"/etc/init.d/mieru": [ "exec" ],
+				"/usr/bin/mieru": [ "exec" ]
+			},
+			"ubus": {
+				"luci.mieru": [
+					"getStatus",
+					"getVersion",
+					"getLog",
+					"testConnection",
+					"explainLink"
+				],
+				"service": [ "list" ]
+			},
+			"uci": [ "mieru" ]
+		},
+		"write": {
+			"file": {
+				"/etc/init.d/mieru": [ "exec" ]
+			},
+			"ubus": {
+				"luci.mieru": [ "serviceAction" ]
+			},
+			"uci": [ "mieru" ]
+		}
+	}
+}

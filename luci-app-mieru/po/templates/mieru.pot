@@ -1,0 +1,364 @@
+# Mieru LuCI translation template.
+# Copyright (C) 2026 IncubusRK
+# This file is distributed under the GPL-2.0-or-later license.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-mieru\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-21 12:00+0000\n"
+"PO-Revision-Date: 2026-11-21 12:00+0000\n"
+"Last-Translator: IncubusRK\n"
+"Language-Team: none\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgid "Action \"%s\" completed."
+msgstr ""
+
+msgid "Action failed"
+msgstr ""
+
+msgid "Active connections"
+msgstr ""
+
+msgid "Additional server port bindings. The primary binding is configured on the Settings tab; each row here adds one more port or port range with its own protocol. Mieru picks a random binding for every new connection."
+msgstr ""
+
+msgid "Allow devices on the LAN to use the HTTP/HTTPS proxy."
+msgstr ""
+
+msgid "Allow devices on the LAN to use this SOCKS5 proxy. Local consumers (Podkop/Xray on this router) work either way."
+msgstr ""
+
+msgid "Apply"
+msgstr ""
+
+msgid "Autostart"
+msgstr ""
+
+msgid "Binding warnings"
+msgstr ""
+
+msgid "Bindings look good"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Check overlaps"
+msgstr ""
+
+msgid "Client profile name used in share links and the client config."
+msgstr ""
+
+msgid "Client version"
+msgstr ""
+
+msgid "Clipboard access is unavailable; the text is selected, press Ctrl+C."
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Configure %s as a SOCKS5 upstream in Podkop, Xray or OpenClash to route their traffic through mieru."
+msgstr ""
+
+msgid "Connection failed"
+msgstr ""
+
+msgid "Connection multiplexing level."
+msgstr ""
+
+msgid "Connection successful"
+msgstr ""
+
+msgid "Connection test"
+msgstr ""
+
+msgid "Copied"
+msgstr ""
+
+msgid "Copied to clipboard."
+msgstr ""
+
+msgid "Copy"
+msgstr ""
+
+msgid "Copy manually"
+msgstr ""
+
+msgid "Disabled"
+msgstr ""
+
+msgid "Download"
+msgstr ""
+
+msgid "ERROR is recommended on OpenWrt to avoid filling the log."
+msgstr ""
+
+msgid "Enable"
+msgstr ""
+
+msgid "Enter a bare IP address or domain name, without scheme or spaces"
+msgstr ""
+
+msgid "Export"
+msgstr ""
+
+msgid "Export failed"
+msgstr ""
+
+msgid "Exports the saved configuration (press Save first if you changed fields). The link uses the upstream-compatible format accepted by \"mieru import config\"."
+msgstr ""
+
+msgid "Generate JSON"
+msgstr ""
+
+msgid "Generate link"
+msgstr ""
+
+msgid "HANDSHAKE_NO_WAIT enables 0-RTT handshakes."
+msgstr ""
+
+msgid "HTTP proxy listen on LAN"
+msgstr ""
+
+msgid "HTTP proxy port"
+msgstr ""
+
+msgid "Handshake mode"
+msgstr ""
+
+msgid "IPv4/IPv6 address or domain name of the mita proxy server."
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import / Export"
+msgstr ""
+
+msgid "Import failed"
+msgstr ""
+
+msgid "Import preview"
+msgstr ""
+
+msgid "Invalid bindings"
+msgstr ""
+
+msgid "Loading log…"
+msgstr ""
+
+msgid "Local SOCKS5 proxy port (no authentication by default)."
+msgstr ""
+
+msgid "Local control port used for status and metrics. Must differ from the SOCKS5 and HTTP proxy ports."
+msgstr ""
+
+msgid "Log"
+msgstr ""
+
+msgid "Log level"
+msgstr ""
+
+msgid "MTU"
+msgstr ""
+
+msgid "MTU must be a number"
+msgstr ""
+
+msgid "MTU must be within 1280-1400"
+msgstr ""
+
+msgid "Mieru"
+msgstr ""
+
+msgid "Mieru proxy client (upstream enfein/mieru). Provides a local SOCKS5 proxy that can be used as an upstream in Podkop, Xray or OpenClash."
+msgstr ""
+
+msgid "Multiplexing"
+msgstr ""
+
+msgid "Must match the password configured on the mita server."
+msgstr ""
+
+msgid "Must match the user configured on the mita server."
+msgstr ""
+
+msgid "No log entries yet."
+msgstr ""
+
+msgid "No overlaps or duplicates detected."
+msgstr ""
+
+msgid "Not running"
+msgstr ""
+
+msgid "On-demand process info, upstream metrics (mieru get metrics) and syslog. Refreshes every 5 seconds; no background monitor daemon is used."
+msgstr ""
+
+msgid "Opaque base64 protobuf payload from a mierus:// share link. Preserved in exports; applied through the client binary when the service starts. Leave empty unless your server requires it."
+msgstr ""
+
+msgid "Optional local HTTP/HTTPS proxy port. Leave empty to disable."
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Paste a mierus:// share link (canonical or compact port=2012,2020-2030/UDP form), a standard mieru:// link (decoded by the client binary), or a mieru client JSON config. Multi-port links are imported losslessly into UCI port bindings."
+msgstr ""
+
+msgid "Port"
+msgstr ""
+
+msgid "Port / range"
+msgstr ""
+
+msgid "Port Binding"
+msgstr ""
+
+msgid "Port Bindings"
+msgstr ""
+
+msgid "Port bindings"
+msgstr ""
+
+msgid "Port must be a number"
+msgstr ""
+
+msgid "Port must be within 1-65535"
+msgstr ""
+
+msgid "Primary server port: a single port (2012) or a range (2020-2030). Add more bindings on the Port Bindings tab."
+msgstr ""
+
+msgid "Process"
+msgstr ""
+
+msgid "Profile name"
+msgstr ""
+
+msgid "Profile name must not be empty or contain spaces"
+msgstr ""
+
+msgid "Protocol"
+msgstr ""
+
+msgid "RPC port"
+msgstr ""
+
+msgid "Refresh log"
+msgstr ""
+
+msgid "Restart"
+msgstr ""
+
+msgid "Running"
+msgstr ""
+
+msgid "SOCKS5 endpoint"
+msgstr ""
+
+msgid "SOCKS5 listen on LAN"
+msgstr ""
+
+msgid "SOCKS5 port"
+msgstr ""
+
+msgid "SOCKS5 upstream: "
+msgstr ""
+
+msgid "Server address"
+msgstr ""
+
+msgid "Service action"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Single port (2012) or range (2020-2030)."
+msgstr ""
+
+msgid "Speed (download / upload)"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "Start the mieru client and keep it running under procd."
+msgstr ""
+
+msgid "State"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "Stop"
+msgstr ""
+
+msgid "Test connection"
+msgstr ""
+
+msgid "The JSON config cannot carry the protobuf traffic pattern; use the share link export to keep it."
+msgstr ""
+
+msgid "The following configuration was parsed. Applying it replaces the current settings and enables the service."
+msgstr ""
+
+msgid "Traffic (download / upload)"
+msgstr ""
+
+msgid "Traffic pattern"
+msgstr ""
+
+msgid "Traffic pattern (advanced)"
+msgstr ""
+
+msgid "Traffic pattern must be base64 (copied from a share link)"
+msgstr ""
+
+msgid "Traffic pattern omitted"
+msgstr ""
+
+msgid "Transport protocol of the primary port binding."
+msgstr ""
+
+msgid "Tunnel MTU, 1280-1400. Must match the server setting."
+msgstr ""
+
+msgid "Underlay connections"
+msgstr ""
+
+msgid "Username"
+msgstr ""
+
+msgid "disabled"
+msgstr ""
+
+msgid "enabled"
+msgstr ""
+
+msgid "init script returned code %d"
+msgstr ""
+
+msgid "no output"
+msgstr ""
+
+msgid "none"
+msgstr ""
+
+msgid "present (preserved)"
+msgstr ""
+
+msgid "unknown"
+msgstr ""
+
+msgid "uptime"
+msgstr ""

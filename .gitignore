@@ -1,0 +1,11 @@
+# Analysis clones and scratch artifacts (read-only references, not part of the repo)
+_analysis/
+
+# Node
+node_modules/
+
+# OS/editor noise
+Thumbs.db
+Desktop.ini
+*.swp
+*~
