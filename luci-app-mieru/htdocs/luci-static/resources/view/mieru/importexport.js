@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+'require baseclass';
 'require form';
 'require uci';
 'require ui';
@@ -269,4 +270,4 @@ function createOptions(s) {
 	o.render = renderExport;
 }
 
-return { createOptions };
+return baseclass.extend({ createOptions });

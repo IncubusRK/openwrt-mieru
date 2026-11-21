@@ -8,7 +8,25 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
-const L = require('../luci-app-mieru/htdocs/luci-static/resources/view/mieru/mieru-link.js');
+const fs = require('node:fs');
+const path = require('node:path');
+
+/* Load mieru-link.js the way the LuCI loader does: evaluate the module with
+ * a baseclass shim, take the returned class and instantiate it. */
+const LINK_PATH = path.join(__dirname, '..', 'luci-app-mieru', 'htdocs',
+	'luci-static', 'resources', 'view', 'mieru', 'mieru-link.js');
+
+const baseclass = {
+	extend(properties) {
+		function LinkClass() {}
+		Object.assign(LinkClass.prototype, properties);
+		return LinkClass;
+	}
+};
+
+const factory = new Function('baseclass', 'module', fs.readFileSync(LINK_PATH, 'utf8'));
+const MieruLink = factory(baseclass, { exports: {} });
+const L = new MieruLink();
 
 /* Example from upstream docs/client-install.md (v3.39.0) — compatibility anchor. */
 const UPSTREAM_DOC_LINK =

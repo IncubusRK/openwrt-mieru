@@ -1,13 +1,16 @@
 'use strict';
+'require baseclass';
 /*
- * mieru-link.js — parser/generator for mieru share links and client configs.
+ * mieru-link.js - parser/generator for mieru share links and client configs.
  *
  * Copyright (C) 2026 IncubusRK
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
- * Pure functions, no LuCI dependencies: the same file is loaded by LuCI
- * ("require view.mieru.mieru-link as link") and by the node test suite
- * (tests/mieru-link.test.cjs).
+ * LuCI's module loader requires every "view.*" module to return a class
+ * constructor; the loader instantiates it and hands the requiring code an
+ * instance. The node test suite (tests/mieru-link.test.cjs) mirrors this:
+ * it evaluates the file through a Function wrapper with a baseclass shim
+ * and instantiates the returned class.
  *
  * Canonical link format (compatible with upstream enfein/mieru
  * `mieru export config simple` / `mieru import config`):
@@ -703,7 +706,9 @@ function configToUci(config) {
 	};
 }
 
-var MieruLink = {
+/* baseclass.extend() yields a constructor: the LuCI loader does
+ * `new MieruLink()` and passes the instance to requiring modules. */
+var MieruLink = baseclass.extend({
 	DEFAULTS: DEFAULTS,
 	MULTIPLEXING_LEVELS: MULTIPLEXING_LEVELS,
 	HANDSHAKE_MODES: HANDSHAKE_MODES,
@@ -716,7 +721,7 @@ var MieruLink = {
 	generateClientJson: generateClientJson,
 	configFromUci: configFromUci,
 	configToUci: configToUci
-};
+});
 
 if (typeof module !== 'undefined' && module.exports)
 	module.exports = MieruLink;

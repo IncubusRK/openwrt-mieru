@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+'require baseclass';
 'require rpc';
 'require poll';
 'require ui';
@@ -214,4 +215,4 @@ async function render() {
 	]);
 }
 
-return { render };
+return baseclass.extend({ render });
