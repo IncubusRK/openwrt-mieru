@@ -12,7 +12,9 @@ PKG_VERSION:=1.0.0
 PKG_RELEASE:=1
 
 LUCI_TITLE:=LuCI support for the Mieru proxy client
-LUCI_DEPENDS:=+luci-base +mieru +rpcd +ucode
+# rpcd-mod-ucode loads root/usr/share/rpcd/ucode/luci.mieru; the plugin
+# imports the "fs" and "uci" ucode modules.
+LUCI_DEPENDS:=+luci-base +mieru +rpcd +rpcd-mod-ucode +ucode-mod-fs +ucode-mod-uci
 LUCI_PKGARCH:=all
 
 PKG_LICENSE:=GPL-2.0-or-later
