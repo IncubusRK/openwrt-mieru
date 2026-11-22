@@ -166,7 +166,7 @@ jobs:
             | grep -E '/mieru-[0-9]|luci-app-mieru|luci-i18n-mieru-ru' \
             | while read -r f; do
                 b=$(basename "$f")
-                cp "$f" "out/${b//~/.}"
+                cp "$f" "out/${b//\~/.}"
               done
           test -n "$(ls out/*.apk 2>/dev/null)"
           (cd out && sha256sum ./*.apk > sha256sums)
