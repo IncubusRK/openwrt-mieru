@@ -58,7 +58,7 @@ configure via **Services → Mieru** and start the service. Default SOCKS5:
 ### Tests
 
 ```sh
-node --test tests/          # 31 link parser/generator tests
+node --test tests/mieru-link.test.cjs   # 31 link parser/generator tests
 node tests/i18n-check.cjs   # 116/116 EN → ru coverage
 ```
 
@@ -137,7 +137,7 @@ make package/openwrt-mieru/luci-app-mieru/compile V=s
 ### Тесты
 
 ```sh
-node --test tests/          # 31 тест парсера/генератора ссылок
+node --test tests/mieru-link.test.cjs   # 31 тест парсера/генератора ссылок
 node tests/i18n-check.cjs   # покрытие EN → ru: 116/116
 ```
 

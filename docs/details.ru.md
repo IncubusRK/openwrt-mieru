@@ -253,7 +253,7 @@ pre-check ubus-scope): per-app `uci: [mieru]` read/write; `ubus luci.mieru`
 Выполнено в этом репо:
 
 - `node --check` — все JS (views + библиотека) и тесты; JSON-валидация menu.d/acl.d.
-- **`node --test tests/` — 31 тест, все проходят**: одиночный порт, списки,
+- **`node --test tests/mieru-link.test.cjs` — 31 тест, все проходят**: одиночный порт, списки,
   диапазоны, TCP/UDP per-binding, компактная форма, IPv6, спецсимволы в учётке,
   невалидные кейсы (порты 0/65536, start>end, mismatch port/protocol, плохие
   enum/mtu/base64…), semantic round-trip, строковая стабильность генератора,
@@ -404,7 +404,7 @@ openwrt-mieru/
 │       ├── templates/mieru.pot
 │       └── ru/mieru.po
 └── tests/
-    ├── mieru-link.test.cjs      # node --test tests/
+    ├── mieru-link.test.cjs      # node --test tests/mieru-link.test.cjs
     └── i18n-check.cjs           # node tests/i18n-check.cjs
 ```
 

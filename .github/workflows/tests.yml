@@ -23,6 +23,6 @@ jobs:
             node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))"
           done
       - name: Link parser/generator tests
-        run: node --test tests/
+        run: node --test tests/mieru-link.test.cjs
       - name: i18n coverage (EN -> ru)
         run: node tests/i18n-check.cjs
