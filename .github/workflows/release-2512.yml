@@ -34,7 +34,7 @@ jobs:
     timeout-minutes: 350
     steps:
       - name: Checkout (full history for tags)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -93,7 +93,7 @@ jobs:
 
       - name: Cache dl + ccache
         if: steps.decide.outputs.changed == 'true'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             /workdir/openwrt/dl
@@ -110,7 +110,7 @@ jobs:
         if: steps.decide.outputs.changed == 'true'
         run: |
           cd /workdir/openwrt
-          sed -i 's|https://git.openwrt.org/feed/packages.git|https://github.com/openwrt/packages.git|; s|https://git.openwrt.org/project/luci.git|https://github.com/openwrt/luci.git|; s|https://git.openwrt.org/feed/routing.git|https://github.com/openwrt/routing.git|; s|https://git.openwrt.org/feed/telephony.git|https://github.com/openwrt/telephony.git|; s|https://git.openwrt.org/feed/video.git|https://github.com/openwrt/video.git|' feeds.conf.default
+          sed -i '/^src-git telephony /d; /^src-git video /d; s|https://git.openwrt.org/feed/packages.git|https://github.com/openwrt/packages.git|; s|https://git.openwrt.org/project/luci.git|https://github.com/openwrt/luci.git|; s|https://git.openwrt.org/feed/routing.git|https://github.com/openwrt/routing.git|' feeds.conf.default
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
