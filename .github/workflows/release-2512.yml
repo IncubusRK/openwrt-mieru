@@ -142,12 +142,15 @@ jobs:
           CONFIG_LUCI_LANG_ru=y
           CONFIG_PACKAGE_mieru=y
           CONFIG_PACKAGE_luci-app-mieru=y
+          CONFIG_DEVEL=y
           CONFIG_CCACHE=y
           CONFIG_CCACHE_DIR="/home/runner/.ccache"
           EOF
           make defconfig
           grep '^CONFIG_PACKAGE_mieru=y' .config
           grep '^CONFIG_PACKAGE_luci-app-mieru=y' .config
+          # CCACHE depends on DEVEL; catch silent defconfig drops
+          grep '^CONFIG_CCACHE=y' .config
 
       - name: Build
         if: steps.decide.outputs.changed == 'true'
@@ -158,6 +161,7 @@ jobs:
           make -j"$(nproc)" toolchain/install || make -j1 V=s toolchain/install
           make -j"$(nproc)" "package/$PKG_DIR/mieru/compile" "package/$PKG_DIR/luci-app-mieru/compile" \
             || make -j1 V=s "package/$PKG_DIR/mieru/compile" "package/$PKG_DIR/luci-app-mieru/compile"
+          ccache -s || true
 
       - name: Collect packages
         if: steps.decide.outputs.changed == 'true'
