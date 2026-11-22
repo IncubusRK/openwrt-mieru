@@ -143,6 +143,7 @@ jobs:
           CONFIG_PACKAGE_mieru=y
           CONFIG_PACKAGE_luci-app-mieru=y
           CONFIG_CCACHE=y
+          CONFIG_CCACHE_DIR="/home/runner/.ccache"
           EOF
           make defconfig
           grep '^CONFIG_PACKAGE_mieru=y' .config
