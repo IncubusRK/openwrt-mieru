@@ -104,7 +104,14 @@ jobs:
 
       - name: Clone OpenWrt
         if: steps.decide.outputs.changed == 'true'
-        run: git clone --depth 1 -b "$OPENWRT_BRANCH" https://github.com/openwrt/openwrt /workdir/openwrt
+        run: |
+          # Cache restore above may have created /workdir/openwrt/dl already;
+          # cloning straight into a non-empty dir fails. Clone into a scratch
+          # dir and merge, preserving the cached dl/.
+          git clone --depth 1 -b "$OPENWRT_BRANCH" https://github.com/openwrt/openwrt /workdir/openwrt-src
+          mkdir -p /workdir/openwrt
+          rsync -a /workdir/openwrt-src/ /workdir/openwrt/
+          rm -rf /workdir/openwrt-src
 
       - name: Feeds (GitHub mirrors, keep ;branch pins)
         if: steps.decide.outputs.changed == 'true'
