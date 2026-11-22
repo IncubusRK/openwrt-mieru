@@ -118,7 +118,9 @@ jobs:
         if: steps.decide.outputs.changed == 'true'
         run: |
           mkdir -p "/workdir/openwrt/package/$PKG_DIR"
-          rsync -a --exclude .git "$GITHUB_WORKSPACE/" "/workdir/openwrt/package/$PKG_DIR/"
+          # Keep .git: luci.mk findrev derives the i18n version from
+          # "git log -1 -- po"; without history it falls back to version 0.
+          rsync -a "$GITHUB_WORKSPACE/" "/workdir/openwrt/package/$PKG_DIR/"
           grep -q 'call BuildPackage' "/workdir/openwrt/package/$PKG_DIR/mieru/Makefile"
           grep -q 'call BuildPackage' "/workdir/openwrt/package/$PKG_DIR/luci-app-mieru/Makefile"
 
