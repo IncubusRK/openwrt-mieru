@@ -1,0 +1,199 @@
+# Monthly automatic build & release of the OpenWrt 25.12 packages (monorepo:
+# mieru client binary + luci-app-mieru + ru translation).
+#
+# - cron: 1st of the month, 03:00 UTC; workflow_dispatch with force=true builds
+#   unconditionally.
+# - Skipped when nothing changed: repo HEAD == commit of the latest release tag
+#   AND upstream openwrt-25.12 HEAD == the 40-hex hash recorded in that release
+#   body (rebuilds also happen when the upstream branch moves).
+# - Releases: openwrt-25.12-<YYYYMMDD>[-HHMM], keep the 5 newest.
+# - No PAT: publishes with GITHUB_TOKEN. Fixed /workdir path + dl/ccache cache.
+
+name: Release OpenWrt 25.12 packages
+
+on:
+  schedule:
+    - cron: '0 3 1 * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Build even if there are no changes'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+env:
+  OPENWRT_BRANCH: openwrt-25.12
+  PKG_DIR: openwrt-mieru
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - name: Checkout (full history for tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Upstream HEAD
+        id: upstream
+        run: |
+          H=$(git ls-remote https://github.com/openwrt/openwrt "refs/heads/$OPENWRT_BRANCH" | cut -f1)
+          [ -n "$H" ] || exit 1
+          echo "hash=$H" >> "$GITHUB_OUTPUT"
+
+      - name: Decide whether to build
+        id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          set -eu
+          if [ "$FORCE" = "true" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          TAG=$(gh release list --limit 100 --json tagName \
+            --jq '[.[] | select(.tagName | startswith("openwrt-25.12-"))][0].tagName // ""')
+          if [ -z "$TAG" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          BUILT=$(git rev-list -n1 "$TAG" 2>/dev/null || echo "")
+          UP_BUILT=$(gh release view "$TAG" --json body --jq '.body' | grep -oE '[0-9a-f]{40}' | head -1 || true)
+          HEAD=$(git rev-parse HEAD)
+          if [ "$BUILT" != "$HEAD" ] || [ "$UP_BUILT" != "${{ steps.upstream.outputs.hash }}" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::no changes since $TAG (repo + upstream) — skipping build"
+          fi
+
+      - name: Free disk space
+        if: steps.decide.outputs.changed == 'true'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                    /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo apt-get clean
+
+      - name: Install dependencies
+        if: steps.decide.outputs.changed == 'true'
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo -E apt-get -qq update
+          sudo -E apt-get -qq install build-essential clang flex bison g++ gawk \
+            gcc-multilib gettext git libncurses5-dev libssl-dev libelf-dev \
+            python3-setuptools python3-dev rsync swig unzip zlib1g-dev file wget ccache
+
+      - name: Prepare workdir
+        if: steps.decide.outputs.changed == 'true'
+        run: sudo mkdir -p /workdir && sudo chown "$USER" /workdir
+
+      - name: Cache dl + ccache
+        if: steps.decide.outputs.changed == 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            /workdir/openwrt/dl
+            /home/runner/.ccache
+          key: pkg2512-${{ env.PKG_DIR }}-cache-${{ github.run_id }}
+          restore-keys: |
+            pkg2512-${{ env.PKG_DIR }}-cache-
+
+      - name: Clone OpenWrt
+        if: steps.decide.outputs.changed == 'true'
+        run: git clone --depth 1 -b "$OPENWRT_BRANCH" https://github.com/openwrt/openwrt /workdir/openwrt
+
+      - name: Feeds (GitHub mirrors, keep ;branch pins)
+        if: steps.decide.outputs.changed == 'true'
+        run: |
+          cd /workdir/openwrt
+          sed -i 's|https://git.openwrt.org/feed/packages.git|https://github.com/openwrt/packages.git|; s|https://git.openwrt.org/project/luci.git|https://github.com/openwrt/luci.git|; s|https://git.openwrt.org/feed/routing.git|https://github.com/openwrt/routing.git|; s|https://git.openwrt.org/feed/telephony.git|https://github.com/openwrt/telephony.git|; s|https://git.openwrt.org/feed/video.git|https://github.com/openwrt/video.git|' feeds.conf.default
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Copy package into the tree
+        if: steps.decide.outputs.changed == 'true'
+        run: |
+          mkdir -p "/workdir/openwrt/package/$PKG_DIR"
+          rsync -a --exclude .git "$GITHUB_WORKSPACE/" "/workdir/openwrt/package/$PKG_DIR/"
+          grep -q 'call BuildPackage' "/workdir/openwrt/package/$PKG_DIR/mieru/Makefile"
+          grep -q 'call BuildPackage' "/workdir/openwrt/package/$PKG_DIR/luci-app-mieru/Makefile"
+
+      - name: Seed config
+        if: steps.decide.outputs.changed == 'true'
+        run: |
+          cd /workdir/openwrt
+          cat > .config <<'EOF'
+          CONFIG_TARGET_mediatek=y
+          CONFIG_TARGET_mediatek_filogic=y
+          CONFIG_TARGET_mediatek_filogic_DEVICE_bananapi_bpi-r4=y
+          CONFIG_LUCI_LANG_ru=y
+          CONFIG_PACKAGE_mieru=y
+          CONFIG_PACKAGE_luci-app-mieru=y
+          CONFIG_CCACHE=y
+          EOF
+          make defconfig
+          grep '^CONFIG_PACKAGE_mieru=y' .config
+          grep '^CONFIG_PACKAGE_luci-app-mieru=y' .config
+
+      - name: Build
+        if: steps.decide.outputs.changed == 'true'
+        run: |
+          cd /workdir/openwrt
+          export CCACHE_DIR=/home/runner/.ccache CCACHE_MAXSIZE=3G
+          make -j"$(nproc)" tools/install || make -j1 V=s tools/install
+          make -j"$(nproc)" toolchain/install || make -j1 V=s toolchain/install
+          make -j"$(nproc)" "package/$PKG_DIR/mieru/compile" "package/$PKG_DIR/luci-app-mieru/compile" \
+            || make -j1 V=s "package/$PKG_DIR/mieru/compile" "package/$PKG_DIR/luci-app-mieru/compile"
+
+      - name: Collect packages
+        if: steps.decide.outputs.changed == 'true'
+        run: |
+          mkdir -p out
+          find /workdir/openwrt/bin/packages -name '*.apk' \
+            | grep -E '/mieru-[0-9]|luci-app-mieru|luci-i18n-mieru-ru' \
+            | while read -r f; do
+                b=$(basename "$f")
+                cp "$f" "out/${b//~/.}"
+              done
+          test -n "$(ls out/*.apk 2>/dev/null)"
+          (cd out && sha256sum ./*.apk > sha256sums)
+          ls -la out
+
+      - name: Publish release
+        if: steps.decide.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          TAG="openwrt-25.12-$(date +%Y%m%d)"
+          if gh release view "$TAG" >/dev/null 2>&1; then TAG="$TAG-$(date +%H%M)"; fi
+          {
+            echo "# openwrt-mieru — OpenWrt 25.12 ($(date +%Y-%m-%d))"
+            echo
+            echo "Upstream: openwrt-25.12 @ ${{ steps.upstream.outputs.hash }}"
+            echo "Package repo HEAD: $(git rev-parse HEAD)"
+            echo
+            echo "mieru client built from upstream sources (enfein/mieru, GPL-3.0-or-later, CGO off)."
+            echo "Assets: mieru binary (aarch64_cortex-a53), luci-app-mieru (all), ru translation, sha256sums."
+            echo '```sh'
+            echo "apk add --allow-untrusted ./mieru-*.apk ./luci-app-mieru-*.apk ./luci-i18n-mieru-ru-*.apk"
+            echo '```'
+            echo "Menu: Services → Mieru. Checksums: sha256sum -c sha256sums"
+          } > notes.md
+          gh release create "$TAG" --title "OpenWrt 25.12 packages ($(date +%Y-%m-%d))" --notes-file notes.md out/*
+
+      - name: Retention (keep 5)
+        if: steps.decide.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --limit 100 --json tagName \
+            --jq '[.[] | select(.tagName | startswith("openwrt-25.12-"))][5:][].tagName' | \
+          while read -r t; do
+            [ -n "$t" ] || continue
+            gh release delete "$t" --yes --cleanup-tag
+          done
